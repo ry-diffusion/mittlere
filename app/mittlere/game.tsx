@@ -1,20 +1,21 @@
 import { useNoiceStore } from "@libs/stores";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import { CardFooter } from "~/components/ui/card";
+import { Progress } from "~/components/ui/progress";
+import ReactMarkdown from "react-markdown";
+import { cn } from "~/lib/utils";
+import { useStore } from "@libs/stores";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
   DrawerDescription,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
+  DrawerTrigger
 } from "~/components/ui/drawer";
-import { Progress } from "~/components/ui/progress";
-import ReactMarkdown from "react-markdown";
-import { cn } from "~/lib/utils";
-import { useStore } from "@libs/stores";
+import { CardFooter } from "~/components/ui/card";
 
 export function PlayingGame() {
   const noice = useNoiceStore();
@@ -44,7 +45,6 @@ export function PlayingGame() {
       return;
     }
 
-
     noice.nextQuestion();
   }
 
@@ -53,7 +53,7 @@ export function PlayingGame() {
   }
 
   return (
-    <div className="flex flex-col gap-3 w-full max-w-full mx-auto items-stretch bg-[#f9f9f9] rounded-lg sm:rounded-xl p-2 sm:p-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+    <div className="flex flex-col gap-3 w-full max-w-full mx-auto items-stretch bg-[#f9f9f9] rounded-lg sm:rounded-xl p-2 sm:p-4 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] relative">
       {/* Compact header with progress bar and lives */}
       <div className="flex items-center justify-between gap-2 mb-1">
         <div className="text-sm font-extrabold flex items-center gap-1">
@@ -108,7 +108,13 @@ export function PlayingGame() {
                 letter === alternative.letter
                   ? "bg-[#ddf4ff] border-[#1cb0f6] shadow-[2px_2px_0px_0px_rgba(28,176,246,1)]"
                   : "bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-50",
-
+                noice.isCurrentQuestionAnswered() &&
+                alternative.letter === question.correctAlternative &&
+                "bg-blue-500 text-white",
+                noice.isCurrentQuestionAnswered() &&
+                alternative.letter !== question.correctAlternative &&
+                alternative.letter === letter &&
+                "bg-[#ff4b4b] text-white"
               )}
             >
               <div
@@ -143,16 +149,15 @@ export function PlayingGame() {
         </div>
       </div>
 
-
+      {/* Drawer para verificação de respostas e feedback - estilo Duolingo */}
       <Drawer>
-        {noice.isCurrentQuestionAnswered() || (
+        {!noice.isCurrentQuestionAnswered() ? (
           <DrawerTrigger asChild>
-
             <button
               onClick={submitAnswer}
               disabled={!letter}
               className={cn(
-                "py-2 sm:py-3 px-4 sm:px-5 rounded-lg border-2 border-black font-extrabold text-base sm:text-lg mx-auto",
+                "py-2 sm:py-3 px-4 sm:px-5 rounded-lg border-2 border-black font-extrabold text-base sm:text-lg fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50",
                 !letter
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
                   : "bg-[#58cc02] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#46a302] hover:translate-y-[-1px] active:translate-y-[1px] transition-all"
@@ -161,17 +166,14 @@ export function PlayingGame() {
               VERIFICAR
             </button>
           </DrawerTrigger>
-        )}
-
-        {noice.isCurrentQuestionAnswered() && (
+        ) : (
           <button
             onClick={goNext}
-            className="py-2 sm:py-3 px-4 sm:px-5 rounded-lg bg-[#58cc02] text-white border-2 border-black font-extrabold text-base sm:text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#46a302] hover:translate-y-[-1px] active:translate-y-[1px] transition-all mx-auto"
+            className="py-2 sm:py-3 px-4 sm:px-5 rounded-lg bg-[#58cc02] text-white border-2 border-black font-extrabold text-base sm:text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#46a302] hover:translate-y-[-1px] active:translate-y-[1px] transition-all fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50"
           >
             CONTINUAR
           </button>
         )}
-
 
         <DrawerContent className="border-t-2 border-black bg-[#f9f9f9]">
           <DrawerHeader className="border-b border-gray-200 px-3">
@@ -232,7 +234,6 @@ export function PlayingGame() {
                 </button>
               </DrawerClose>
 
-
               {
                 !reviewMode && (
                   <DrawerClose asChild>
@@ -240,15 +241,64 @@ export function PlayingGame() {
                       Revisar
                     </Button>
                   </DrawerClose>
-                )}
+                )
+              }
             </div>
           </CardFooter>
         </DrawerContent>
       </Drawer>
+
+      {/* Informações da revisão */}
+      {noice.isCurrentQuestionAnswered() && reviewMode && (
+        <div className="mt-4 bg-white rounded-md border-2 border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <div className="mb-3">
+            {question.correctAlternative === letter ? (
+              <div className="bg-[#d7ffb8] border-2 border-[#58cc02] rounded-md p-2 sm:p-3 flex items-center gap-2 shadow-[2px_2px_0px_0px_rgba(88,204,2,1)]">
+                <div className="bg-[#58cc02] text-white text-base sm:text-xl p-1 rounded-full w-8 text-center">
+                  ✓
+                </div>
+                <p className="text-[#58cc02] font-extrabold text-base sm:text-lg">
+                  Correto! 🎉
+                </p>
+              </div>
+            ) : (
+              <div className="bg-[#ffebeb] border-2 border-[#ff4b4b] rounded-md p-2 sm:p-3 flex items-center gap-2 shadow-[2px_2px_0px_0px_rgba(255,75,75,1)]">
+                <div className="bg-[#ff4b4b] text-white text-base sm:text-xl p-1 rounded-full w-8 text-center">
+                  ✗
+                </div>
+                <p className="text-[#ff4b4b] font-extrabold text-base sm:text-lg">
+                  Incorreto! 😢
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-md border-2 border-gray-300 p-2 sm:p-3 shadow-[1px_1px_0px_0px_rgba(0,0,0,0.1)]">
+            <div className="flex items-center gap-2">
+              <p className="text-sm sm:text-base font-bold">
+                Resposta correta:
+              </p>
+              <div className="p-1 sm:p-2 bg-[#d7ffb8] rounded-md border border-[#58cc02] font-bold text-sm sm:text-base">
+                {question.correctAlternative}
+              </div>
+            </div>
+
+            {letter !== question.correctAlternative && (
+              <div className="flex items-center gap-2 mt-2">
+                <p className="text-sm sm:text-base font-bold">
+                  Sua resposta:
+                </p>
+                <div className="p-1 sm:p-2 bg-[#ffebeb] rounded-md border border-[#ff4b4b] font-bold text-sm sm:text-base">
+                  {letter}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
 
 export function GameFinished() {
   const noice = useNoiceStore();
@@ -267,8 +317,6 @@ export function GameFinished() {
   // Calcula o número de respostas corretas
   const correctAnswers = game?.questions.filter(q => q.state === "correct").length || 0;
   const totalQuestions = game?.questions.length || 0;
-
-
 
   return (
     <div className="flex flex-col gap-3 w-full max-w-md mx-auto items-stretch bg-[#f9f9f9] rounded-lg sm:rounded-xl p-4 sm:p-6 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
@@ -344,8 +392,6 @@ export function GameFinished() {
         >
           É isso.
         </button>
-
-
       </div>
     </div>
   );
