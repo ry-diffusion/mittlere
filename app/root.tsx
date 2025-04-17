@@ -17,10 +17,17 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.gstatic.com",
     crossOrigin: "anonymous",
   },
-
   {
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,100..900;1,100..900&display=swap",
+  },
+  {
+    rel: "manifest",
+    href: "/site.webmanifest",
+  },
+  {
+    rel: "apple-touch-icon",
+    href: "/apple-touch-icon.png",
   },
 ];
 
@@ -30,6 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#ed8629" />
         <Meta />
         <Links />
       </head>
