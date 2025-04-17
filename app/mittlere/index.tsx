@@ -1,5 +1,5 @@
 import { useEnemStore, useNoiceStore, useStore } from "@libs/stores";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "~/components/ui/button";
 import {
   Card,
@@ -72,6 +72,19 @@ function QuestionIgniterDiscipline() {
 
   if (!disciplines) return null;
 
+  function igniteGame() {
+    enem.setSelectedYear(store.questionIgniter.examYear!);
+
+    // Convert store disciplines to string array for ENEM store
+    const disciplineValues = store.questionIgniter.disciplines!.map(
+      (d) => d.value
+    );
+
+    enem.setSelectedDisciplines(disciplineValues);
+
+    store.goDownloadQuestions();
+  }
+
   return (
     <Card className="w-full max-w-md mx-auto border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0)]">
       <CardHeader>
@@ -118,19 +131,11 @@ function QuestionIgniterDiscipline() {
           >
             Voltar
           </Button>
+
           <Button
             disabled={!store.isReadyToIgnite()}
             className="font-bold text-lg shadow-[4px_4px_0px_0px_rgba(0,0,0)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0)] hover:translate-x-[2px] hover:translate-y-[2px] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:shadow-[4px_4px_0px_0px_rgba(0,0,0)] disabled:hover:translate-x-[0px] disabled:hover:translate-y-[0px] transition-all border-2 border-black"
-            onClick={() => {
-              enem.setSelectedYear(store.questionIgniter.examYear!);
-              // Convert store disciplines to string array for ENEM store
-              const disciplineValues = store.questionIgniter.disciplines!.map(
-                (d) => d.value
-              );
-              enem.setSelectedDisciplines(disciplineValues);
-
-              store.goDownloadQuestions();
-            }}
+            onClick={igniteGame}
           >
             Iniciar
           </Button>
@@ -157,11 +162,50 @@ export function DownloadQuestions() {
   const enem = useEnemStore();
   const store = useStore();
   const noice = useNoiceStore();
+  const enemQuestions = useEnemStore(s => s.questions)
+  const [hasDownloaded, setDownloaded] = useState(false);
+
+  useEffect(() => {
+    if (!hasDownloaded) return;
+
+    const questions = [];
+    const indexes = Object.keys(enemQuestions!);
+    if (indexes.length == 0) {
+      throw new Error("No questions available.");
+    }
+
+    // select 15 random questions
+    for (let i = 0; i < 15; i++) {
+      const randomIndex = Math.floor(Math.random() * indexes.length);
+      const question = enemQuestions[indexes[randomIndex]];
+
+      if (!question) {
+        console.warn(
+          `Question not found for index ${randomIndex}. retrying.., available indexes:`,
+          indexes,
+          enem.questions
+        );
+        i--;
+        continue;
+      }
+
+      questions.push(enemQuestions[indexes[randomIndex]]);
+    }
+
+    console.log(questions);
+
+    noice.initializeGame(questions);
+
+    // Once questions are loaded, transition to playing state
+    store.goPlaying();
+  }, [hasDownloaded, enemQuestions]);
+  
 
   useEffect(() => {
     const chooseRandomQuestions = async () => {
       if (enem.selectedYear && enem.selectedDisciplines.length > 0) {
         try {
+          console.log(`ano enem: ${enem.selectedYear} ${enem.selectedDisciplines}`)
           // Fetch questions for all selected disciplines
           await enem.fetchQuestions(
             enem.selectedYear,
@@ -169,36 +213,9 @@ export function DownloadQuestions() {
             enem.selectedLanguage || undefined
           );
 
-          const questions = [];
-          const indexes = Object.keys(enem.questions!);
-          if (indexes.length == 0) {
-            throw new Error("No questions available.");
-          }
+          setDownloaded(true)
 
-          // select 15 random questions
-          for (let i = 0; i < 15; i++) {
-            const randomIndex = Math.floor(Math.random() * indexes.length);
-            const question = enem.questions[indexes[randomIndex]];
-
-            if (!question) {
-              console.warn(
-                `Question not found for index ${randomIndex}. retrying.., available indexes:`,
-                indexes,
-                enem.questions
-              );
-              i--;
-              continue;
-            }
-
-            questions.push(enem.questions[indexes[randomIndex]]);
-          }
-
-          console.log(questions);
-
-          noice.initializeGame(questions);
-
-          // Once questions are loaded, transition to playing state
-          store.goPlaying();
+          
         } catch (error) {
           console.error("Error loading questions:", error);
           store.goPreparing();
@@ -207,7 +224,7 @@ export function DownloadQuestions() {
     };
 
     chooseRandomQuestions();
-  }, []);
+  }, [store.state]);
 
   return (
     <>

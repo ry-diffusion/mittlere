@@ -14,6 +14,7 @@ export type GameQuestion = {
 export type Game = {
   // The current level of the game
   lives: number;
+  maxLives: number;
   questionIndex: number;
   questions: GameQuestion[];
 };
@@ -33,10 +34,55 @@ export type NoiceStore = {
   nextQuestion: () => void;
   missQuestion: () => void;
   initializeGame: (questions: QuestionDetails[]) => void;
+  tryCurrentQuestionAgain: () => void; 
+  isCurrentQuestionAnswered: () => boolean;
+  getAcurracy: () => number;
 };
 
-export const useNoiceStore = create<NoiceStore>((set) => ({
+export const useNoiceStore = create<NoiceStore>((set, get) => ({
   gameState: "waiting",
+
+  isCurrentQuestionAnswered: () => {
+    const game = get().game;
+    if (!game) return false;
+
+    const question = game.questions[game.questionIndex];
+
+    return question.state !== "unanswered";
+  },
+
+  getAcurracy: () => {
+    const game = get().game;
+    if (!game) return 0;
+
+    const correctAnswers = game.questions.filter(
+      (question) => question.state === "correct"
+    ).length;
+
+    return (correctAnswers / game.questions.length) * 100;
+  },
+
+  tryCurrentQuestionAgain: () => {
+    set((state) => {
+      const game = state.game!;
+      const questionIndex = game.questionIndex;
+      const question = game.questions[questionIndex];
+
+      return {
+        game: {
+          ...game,
+          questions: [
+            ...game.questions.slice(0, questionIndex),
+            {
+              ...question,
+              state: "unanswered",
+            },
+            ...game.questions.slice(questionIndex + 1),
+          ],
+        },
+      };
+    }); 
+  },
 
   nextQuestion: () => {
     set((state) => {
@@ -84,7 +130,10 @@ export const useNoiceStore = create<NoiceStore>((set) => ({
       const lives = game.lives - 1;
 
       if (lives <= 0) {
-        return { gameState: "finished" };
+        return { gameState: "finished", game: {
+          ...game,
+          lives: 0,
+        } };
       }
 
       return {
@@ -100,7 +149,8 @@ export const useNoiceStore = create<NoiceStore>((set) => ({
     if (questions.length == 0) throw new Error("No questions provided");
 
     const game: Game = {
-      lives: 3,
+      lives: 7,
+      maxLives: 7,
       questionIndex: 0,
       questions: questions.map((question) => ({
         state: "unanswered",
