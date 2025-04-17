@@ -28,6 +28,8 @@ export type NoiceStore = {
   game?: Noice["game"];
   gameStartedAt?: Date;
 
+  setCurrentQuestionState: (state: QuestionState) => void;
+
   nextQuestion: () => void;
   missQuestion: () => void;
   initializeGame: (questions: QuestionDetails[]) => void;
@@ -49,6 +51,28 @@ export const useNoiceStore = create<NoiceStore>((set) => ({
         game: {
           ...game,
           questionIndex: nextQuestionIndex,
+        },
+      };
+    });
+  },
+
+  setCurrentQuestionState: (newState: QuestionState) => {
+    set((state) => {
+      const game = state.game!;
+      const questionIndex = game.questionIndex;
+      const question = game.questions[questionIndex];
+
+      return {
+        game: {
+          ...game,
+          questions: [
+            ...game.questions.slice(0, questionIndex),
+            {
+              ...question,
+              state: newState,
+            },
+            ...game.questions.slice(questionIndex + 1),
+          ],
         },
       };
     });

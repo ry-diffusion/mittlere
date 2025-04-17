@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import { CardFooter } from "~/components/ui/card";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
   DrawerHeader,
@@ -28,6 +29,8 @@ export function Game() {
     if (!isCorrect) {
       noice.missQuestion();
     }
+
+    noice.setCurrentQuestionState(isCorrect ? "correct" : "incorrect");
   }
 
   return (
@@ -186,10 +189,11 @@ export function Game() {
                   </div>
                 )}
               </div>
-
-              <button className="py-2 sm:py-3 px-4 sm:px-5 rounded-lg bg-[#58cc02] text-white border-2 border-black font-extrabold text-base sm:text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#46a302] hover:translate-y-[-1px] active:translate-y-[1px] transition-all w-full">
-                CONTINUAR
-              </button>
+              <DrawerClose asChild>
+                <button className="py-2 sm:py-3 px-4 sm:px-5 rounded-lg bg-[#58cc02] text-white border-2 border-black font-extrabold text-base sm:text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#46a302] hover:translate-y-[-1px] active:translate-y-[1px] transition-all w-full">
+                  CONTINUAR
+                </button>
+              </DrawerClose>
             </div>
           </CardFooter>
         </DrawerContent>
