@@ -149,7 +149,7 @@ function Mitlre() {
   return (
     <div className="flex flex-col items-center justify-center gap-4 max-w-4xl text-center">
       <div className="text-6xl sm:text-7xl font-black tracking-tight pb-2 border-b-4 border-black">
-        Mitlere
+        Mittlere
       </div>
       <div className="text-xl sm:text-2xl font-bold mt-2">
         O Seu Duolingo para o ENEM
@@ -162,7 +162,7 @@ export function DownloadQuestions() {
   const enem = useEnemStore();
   const store = useStore();
   const noice = useNoiceStore();
-  const enemQuestions = useEnemStore(s => s.questions)
+  const enemQuestions = useEnemStore((s) => s.questions);
   const [hasDownloaded, setDownloaded] = useState(false);
 
   useEffect(() => {
@@ -199,13 +199,14 @@ export function DownloadQuestions() {
     // Once questions are loaded, transition to playing state
     store.goPlaying();
   }, [hasDownloaded, enemQuestions]);
-  
 
   useEffect(() => {
     const chooseRandomQuestions = async () => {
       if (enem.selectedYear && enem.selectedDisciplines.length > 0) {
         try {
-          console.log(`ano enem: ${enem.selectedYear} ${enem.selectedDisciplines}`)
+          console.log(
+            `ano enem: ${enem.selectedYear} ${enem.selectedDisciplines}`
+          );
           // Fetch questions for all selected disciplines
           await enem.fetchQuestions(
             enem.selectedYear,
@@ -213,9 +214,7 @@ export function DownloadQuestions() {
             enem.selectedLanguage || undefined
           );
 
-          setDownloaded(true)
-
-          
+          setDownloaded(true);
         } catch (error) {
           console.error("Error loading questions:", error);
           store.goPreparing();
