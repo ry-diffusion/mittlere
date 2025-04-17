@@ -28,11 +28,49 @@ export type NoiceStore = {
   game?: Noice["game"];
   gameStartedAt?: Date;
 
+  nextQuestion: () => void;
+  missQuestion: () => void;
   initializeGame: (questions: QuestionDetails[]) => void;
 };
 
 export const useNoiceStore = create<NoiceStore>((set) => ({
   gameState: "waiting",
+
+  nextQuestion: () => {
+    set((state) => {
+      const game = state.game!;
+      const nextQuestionIndex = game.questionIndex + 1;
+
+      if (nextQuestionIndex >= game.questions.length) {
+        return { gameState: "finished" };
+      }
+
+      return {
+        game: {
+          ...game,
+          questionIndex: nextQuestionIndex,
+        },
+      };
+    });
+  },
+
+  missQuestion: () => {
+    set((state) => {
+      const game = state.game!;
+      const lives = game.lives - 1;
+
+      if (lives <= 0) {
+        return { gameState: "finished" };
+      }
+
+      return {
+        game: {
+          ...game,
+          lives,
+        },
+      };
+    });
+  },
 
   initializeGame: (questions) => {
     if (questions.length == 0) throw new Error("No questions provided");
