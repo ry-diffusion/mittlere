@@ -1,9 +1,8 @@
 import { useNoiceStore } from "@libs/stores";
 import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { Progress } from "~/components/ui/progress";
+import { Button } from "@components/ui/button";
+import { Progress } from "@components/ui/progress";
 import ReactMarkdown from "react-markdown";
-import { cn } from "~/lib/utils";
 import { useStore } from "@libs/stores";
 import {
   Drawer,
@@ -13,9 +12,10 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger
-} from "~/components/ui/drawer";
-import { CardFooter } from "~/components/ui/card";
+  DrawerTrigger,
+} from "@components/ui/drawer";
+import { CardFooter } from "@components/ui/card";
+import { cn } from "@/lib/utils";
 
 export function PlayingGame() {
   const noice = useNoiceStore();
@@ -109,12 +109,12 @@ export function PlayingGame() {
                   ? "bg-[#ddf4ff] border-[#1cb0f6] shadow-[2px_2px_0px_0px_rgba(28,176,246,1)]"
                   : "bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-50",
                 noice.isCurrentQuestionAnswered() &&
-                alternative.letter === question.correctAlternative &&
-                "bg-blue-500 text-white",
+                  alternative.letter === question.correctAlternative &&
+                  "bg-blue-500 text-white",
                 noice.isCurrentQuestionAnswered() &&
-                alternative.letter !== question.correctAlternative &&
-                alternative.letter === letter &&
-                "bg-[#ff4b4b] text-white"
+                  alternative.letter !== question.correctAlternative &&
+                  alternative.letter === letter &&
+                  "bg-[#ff4b4b] text-white"
               )}
             >
               <div
@@ -124,12 +124,12 @@ export function PlayingGame() {
                     ? "bg-[#1cb0f6] text-white"
                     : "bg-gray-100 text-black border border-black",
                   noice.isCurrentQuestionAnswered() &&
-                  alternative.letter === question.correctAlternative &&
-                  "bg-blue-500 text-white",
+                    alternative.letter === question.correctAlternative &&
+                    "bg-blue-500 text-white",
                   noice.isCurrentQuestionAnswered() &&
-                  alternative.letter !== question.correctAlternative &&
-                  alternative.letter === letter &&
-                  "bg-[#ff4b4b] text-white"
+                    alternative.letter !== question.correctAlternative &&
+                    alternative.letter === letter &&
+                    "bg-[#ff4b4b] text-white"
                 )}
               >
                 {alternative.letter}
@@ -229,20 +229,25 @@ export function PlayingGame() {
               </div>
 
               <DrawerClose asChild>
-                <button onClick={goNext} className="py-2 sm:py-3 px-4 sm:px-5 rounded-lg bg-[#58cc02] text-white border-2 border-black font-extrabold text-base sm:text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#46a302] hover:translate-y-[-1px] active:translate-y-[1px] transition-all w-full">
+                <button
+                  onClick={goNext}
+                  className="py-2 sm:py-3 px-4 sm:px-5 rounded-lg bg-[#58cc02] text-white border-2 border-black font-extrabold text-base sm:text-lg shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-[#46a302] hover:translate-y-[-1px] active:translate-y-[1px] transition-all w-full"
+                >
                   CONTINUAR
                 </button>
               </DrawerClose>
 
-              {
-                !reviewMode && (
-                  <DrawerClose asChild>
-                    <Button variant="neutral" className="sm:py-3 px-4 sm:px-5" onClick={review}>
-                      Revisar
-                    </Button>
-                  </DrawerClose>
-                )
-              }
+              {!reviewMode && (
+                <DrawerClose asChild>
+                  <Button
+                    variant="neutral"
+                    className="sm:py-3 px-4 sm:px-5"
+                    onClick={review}
+                  >
+                    Revisar
+                  </Button>
+                </DrawerClose>
+              )}
             </div>
           </CardFooter>
         </DrawerContent>
@@ -285,9 +290,7 @@ export function PlayingGame() {
 
             {letter !== question.correctAlternative && (
               <div className="flex items-center gap-2 mt-2">
-                <p className="text-sm sm:text-base font-bold">
-                  Sua resposta:
-                </p>
+                <p className="text-sm sm:text-base font-bold">Sua resposta:</p>
                 <div className="p-1 sm:p-2 bg-[#ffebeb] rounded-md border border-[#ff4b4b] font-bold text-sm sm:text-base">
                   {letter}
                 </div>
@@ -307,7 +310,9 @@ export function GameFinished() {
   const accuracy = noice.getAcurracy();
   const startTime = useNoiceStore((g) => g.gameStartedAt);
   const endTime = new Date();
-  const gameTimeInSeconds = startTime ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000) : 0;
+  const gameTimeInSeconds = startTime
+    ? Math.floor((endTime.getTime() - startTime.getTime()) / 1000)
+    : 0;
 
   // Formata o tempo em minutos e segundos
   const minutes = Math.floor(gameTimeInSeconds / 60);
@@ -315,28 +320,39 @@ export function GameFinished() {
   const formattedTime = `${minutes}m ${seconds}s`;
 
   // Calcula o número de respostas corretas
-  const correctAnswers = game?.questions.filter(q => q.state === "correct").length || 0;
+  const correctAnswers =
+    game?.questions.filter((q) => q.state === "correct").length || 0;
   const totalQuestions = game?.questions.length || 0;
 
   return (
     <div className="flex flex-col gap-3 w-full max-w-md mx-auto items-stretch bg-[#f9f9f9] rounded-lg sm:rounded-xl p-4 sm:p-6 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
       {/* Cabeçalho com título e troféu/parabéns */}
       <div className="flex flex-col items-center justify-center gap-2 mb-4">
-        {game.lives != 0 && (<>
-          <div className="text-5xl mb-2">🏆</div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-center">Exercício Concluído!</h2>
-          <p className="text-sm sm:text-base text-gray-600 text-center">
-            {game && game.lives > 0 ? `Você completou com ${game.lives} ❤️ restante${game.lives > 1 ? 's' : ''}!` : "Você usou todas as suas vidas!"}
-          </p>
-        </>)}
+        {game.lives != 0 && (
+          <>
+            <div className="text-5xl mb-2">🏆</div>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-center">
+              Exercício Concluído!
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 text-center">
+              {game && game.lives > 0
+                ? `Você completou com ${game.lives} ❤️ restante${game.lives > 1 ? "s" : ""}!`
+                : "Você usou todas as suas vidas!"}
+            </p>
+          </>
+        )}
 
-        {game.lives == 0 && (<>
-          <div className="text-5xl mb-2">😢</div>
-          <h2 className="text-xl sm:text-2xl font-extrabold text-center">Não foi hoje!</h2>
-          <p className="text-sm sm:text-base text-gray-600 text-center">
-            Você usou todas as suas vidas!
-          </p>
-        </>)}
+        {game.lives == 0 && (
+          <>
+            <div className="text-5xl mb-2">😢</div>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-center">
+              Não foi hoje!
+            </h2>
+            <p className="text-sm sm:text-base text-gray-600 text-center">
+              Você usou todas as suas vidas!
+            </p>
+          </>
+        )}
       </div>
 
       {/* Cartão com as estatísticas */}
@@ -348,19 +364,25 @@ export function GameFinished() {
           {/* Precisão */}
           <div className="flex flex-col items-center bg-[#e5f8d8] p-3 rounded-md border border-[#58cc02]">
             <span className="text-sm font-medium text-gray-600">Precisão</span>
-            <span className="text-xl font-extrabold text-[#58cc02]">{accuracy.toFixed(0)}%</span>
+            <span className="text-xl font-extrabold text-[#58cc02]">
+              {accuracy.toFixed(0)}%
+            </span>
           </div>
 
           {/* Respostas corretas */}
           <div className="flex flex-col items-center bg-[#ddf4ff] p-3 rounded-md border border-[#1cb0f6]">
             <span className="text-sm font-medium text-gray-600">Acertos</span>
-            <span className="text-xl font-extrabold text-[#1cb0f6]">{correctAnswers}/{totalQuestions}</span>
+            <span className="text-xl font-extrabold text-[#1cb0f6]">
+              {correctAnswers}/{totalQuestions}
+            </span>
           </div>
 
           {/* Tempo */}
           <div className="flex flex-col items-center bg-[#f0f0f0] p-3 rounded-md border border-gray-400">
             <span className="text-sm font-medium text-gray-600">Tempo</span>
-            <span className="text-xl font-extrabold text-gray-700">{formattedTime}</span>
+            <span className="text-xl font-extrabold text-gray-700">
+              {formattedTime}
+            </span>
           </div>
 
           {/* Vidas restantes */}
@@ -399,8 +421,10 @@ export function GameFinished() {
 
 export function Game() {
   const noice = useNoiceStore();
-  return <>
-    {noice.gameState === "playing" && <PlayingGame />}
-    {noice.gameState === "finished" && <GameFinished />}
-  </>
+  return (
+    <>
+      {noice.gameState === "playing" && <PlayingGame />}
+      {noice.gameState === "finished" && <GameFinished />}
+    </>
+  );
 }

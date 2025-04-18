@@ -1,17 +1,17 @@
 import { useEnemStore, useNoiceStore, useStore } from "@libs/stores";
 import { useEffect, useState } from "react";
-import { Button } from "~/components/ui/button";
+import { Button } from "@components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "~/components/ui/card";
-import { Checkbox } from "~/components/ui/checkbox";
-import { Label } from "~/components/ui/label";
-import { Skeleton } from "~/components/ui/skeleton";
-import { Game } from "~/mittlere/game";
+} from "@components/ui/card";
+import { Checkbox } from "@components/ui/checkbox";
+import { Label } from "@components/ui/label";
+import { Skeleton } from "@components/ui/skeleton";
+import { Game } from "@/components/mittlere/game";
 
 function QuestionIgniterYear() {
   const enem = useEnemStore();
