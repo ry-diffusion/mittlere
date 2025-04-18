@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import {
-  allExams,
-  enemIndex,
+  fetchExams,
+  fetchExamsIndex,
   type EnemExam,
   type EnemExamIndex,
   type Discipline,
@@ -90,11 +90,13 @@ export const useEnemStore = create<EnemStoreState>((set, get) => ({
     set({ isLoadingExams: true, examError: null });
 
     try {
-      // We already have the exams data imported from libenem.ts
-      // In a real app, we might fetch this from an API
+      // Fetch exams from public directory
+      const exams = await fetchExams();
+      const examsIndex = await fetchExamsIndex();
+
       set({
-        exams: allExams,
-        examsIndex: enemIndex,
+        exams: exams,
+        examsIndex: examsIndex,
         isLoadingExams: false,
       });
     } catch (error) {
@@ -305,12 +307,16 @@ export const useEnemStore = create<EnemStoreState>((set, get) => ({
 // Utility functions for the store
 export function getAvailableDisciplines(year: number | null): Discipline[] {
   if (!year) return [];
-  return enemIndex[year]?.disciplines || [];
+  // Get the disciplines from the store instead of the static enemIndex
+  const store = useEnemStore.getState();
+  return store.examsIndex[year]?.disciplines || [];
 }
 
 export function getAvailableLanguages(year: number | null): Language[] {
   if (!year) return [];
-  return enemIndex[year]?.languages || [];
+  // Get the languages from the store instead of the static enemIndex
+  const store = useEnemStore.getState();
+  return store.examsIndex[year]?.languages || [];
 }
 
 // Helper function to build path to question

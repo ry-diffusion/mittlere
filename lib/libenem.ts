@@ -1,7 +1,3 @@
-import Exams from "@libs/exams.json";
-import path from "path";
-import fs from "fs";
-
 // Types for discipline and language
 export interface Discipline {
   label: string;
@@ -42,85 +38,31 @@ export function indexEnemExams(exams: EnemExam[]): EnemExamIndex {
   }, {});
 }
 
-export const allExams = Exams as EnemExam[];
-export const enemIndex = indexEnemExams(Exams as EnemExam[]);
-
 /**
- * Load exam questions data from file system
- * @param yearDir The directory containing question files for a specific year
- * @returns Object containing the structured question data
+ * Fetch exam data from the public directory
+ * @returns Promise resolving to array of ENEM exams
  */
-export async function loadExamData(yearDir: string): Promise<{
-  year: number;
-  disciplines: Discipline[];
-  languages: Language[];
-  questions: any[];
-}> {
+export async function fetchExams(): Promise<EnemExam[]> {
   try {
-    // Read the details.json file
-    const detailsPath = path.join(yearDir, "details.json");
-    const rawDetails = JSON.parse(fs.readFileSync(detailsPath, "utf8"));
+    const response = await fetch("/exams.json");
 
-    const year = parseInt(path.basename(yearDir), 10);
-
-    // Extract data from details
-    const disciplines = rawDetails.disciplines || [];
-    const languages = rawDetails.languages || [];
-
-    // Build question index
-    const questions = [];
-
-    // Find all question directories
-    const questionsDir = path.join(yearDir, "questions");
-    if (fs.existsSync(questionsDir)) {
-      const questionIds = fs
-        .readdirSync(questionsDir)
-        .filter((dir) =>
-          fs.statSync(path.join(questionsDir, dir)).isDirectory()
-        );
-
-      // Load basic info for each question
-      for (const qId of questionIds) {
-        const questionDetailsPath = path.join(
-          questionsDir,
-          qId,
-          "details.json"
-        );
-
-        if (fs.existsSync(questionDetailsPath)) {
-          try {
-            const questionData = JSON.parse(
-              fs.readFileSync(questionDetailsPath, "utf8")
-            );
-
-            // Normalize the data structure
-            const normalizedQuestion = {
-              title: questionData.title || `Questão ${qId} - ENEM ${year}`,
-              index: questionData.index || parseInt(qId, 10),
-              discipline: questionData.discipline || null,
-              language: questionData.language || null,
-              // Don't load full details here, just metadata
-            };
-
-            questions.push(normalizedQuestion);
-          } catch (err) {
-            console.warn(
-              `Error loading question ${qId} for year ${year}:`,
-              err
-            );
-          }
-        }
-      }
+    if (!response.ok) {
+      throw new Error(`Failed to fetch exams: ${response.statusText}`);
     }
 
-    return { year, disciplines, languages, questions };
+    const exams = await response.json();
+    return exams as EnemExam[];
   } catch (error) {
-    console.error(`Failed to load exam data for ${yearDir}:`, error);
-    return {
-      year: parseInt(path.basename(yearDir), 10),
-      disciplines: [],
-      languages: [],
-      questions: [],
-    };
+    console.error("Error fetching exams:", error);
+    return [];
   }
+}
+
+/**
+ * Build an index of exams from fetched data
+ * @returns Promise resolving to an indexed object of exams
+ */
+export async function fetchExamsIndex(): Promise<EnemExamIndex> {
+  const exams = await fetchExams();
+  return indexEnemExams(exams);
 }
